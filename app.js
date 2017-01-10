@@ -16,13 +16,28 @@ bodyParser = require('body-parser'),
     crypto = require('crypto'),
     express = require('express'),
     https = require('https'),  
+    mongoose = require('mongoose'),
     request = require('request');
 
+mongoose.Promise = require('bluebird');
 var app = express();
 app.set('port', process.env.PORT || 5000);
 app.set('view engine', 'ejs');
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
+app.use(bodyParser.urlencoded({
+  extended: true
+})); 
 app.use(express.static('public'));
+require('./routes')(app);
+
+// Connect to MongoDB
+var url = 'mongodb://localhost:27017/stock';
+mongoose.connect(url, {});
+mongoose.connection.on('error', function(err) {
+  console.error(`MongoDB connection error: ${err}`);
+  process.exit(-1); // eslint-disable-line no-process-exit
+});
+
 
 /*
  * Be sure to setup your config values before running this code. You can 
