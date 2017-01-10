@@ -17,6 +17,11 @@ bodyParser = require('body-parser'),
     express = require('express'),
     https = require('https'),  
     mongoose = require('mongoose'),
+    messenger = require('./components/messenger'),
+    News = require('./apps/news/news.model'),
+    User = require('./apps/user/user.model'),
+    callSendAPI = messenger.callSendAPI,
+    NewsCtrl = require('./apps/news/news.ctrl'),
     request = require('request');
 
 mongoose.Promise = require('bluebird');
@@ -25,7 +30,7 @@ app.set('port', process.env.PORT || 5000);
 app.set('view engine', 'ejs');
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
 app.use(bodyParser.urlencoded({
-  extended: true
+    extended: true
 })); 
 app.use(express.static('public'));
 require('./routes')(app);
@@ -34,8 +39,8 @@ require('./routes')(app);
 var url = 'mongodb://localhost:27017/stock';
 mongoose.connect(url, {});
 mongoose.connection.on('error', function(err) {
-  console.error(`MongoDB connection error: ${err}`);
-  process.exit(-1); // eslint-disable-line no-process-exit
+    console.error(`MongoDB connection error: ${err}`);
+    process.exit(-1); // eslint-disable-line no-process-exit
 });
 
 
@@ -88,6 +93,24 @@ app.get('/webhook', function(req, res) {
     }  
 });
 
+function createOrUpdateUser(event) {
+    console.log("checking user .....")
+    User.find({messageId: event.sender.id}, function(err, users) {
+        if (err) {
+            console.log("Failed to get user")
+            console.error(err);
+            return;
+        } 
+
+        if (!users || !users.length) {
+            var user = new User({
+                chatID: event.sender.id
+            });
+            user.save();
+        }
+    });
+}
+
 
 /*
  * All callbacks for Messenger are POST-ed. They will be sent to the same
@@ -101,6 +124,7 @@ app.post('/webhook', function (req, res) {
 
     console.log('request received')
 
+
     // Make sure this is a page subscription
     if (data.object == 'page') {
         // Iterate over each entry
@@ -111,6 +135,7 @@ app.post('/webhook', function (req, res) {
 
             // Iterate over each messaging event
             pageEntry.messaging.forEach(function(messagingEvent) {
+                createOrUpdateUser(messagingEvent);
                 if (messagingEvent.optin) {
                     receivedAuthentication(messagingEvent);
                 } else if (messagingEvent.message) {
@@ -381,7 +406,10 @@ function receivedPostback(event) {
 
     // When a postback is called, we'll send a message back to the sender to 
     // let them know it was successful
-    sendTextMessage(senderID, "Postback called");
+    var articleID = payload.split("__")[1];
+    News.findById(articleID, function(err, article) {
+        sendTextMessage(senderID, article.summary.substr(0, 630));
+    });
 }
 
 /*
@@ -586,55 +614,55 @@ function sendButtonMessage(recipientId) {
     callSendAPI(messageData);
 }
 
+app.get('/send-news', function(req, res) {
+    User.find({}, function(err, users){
+        if(err) {
+            console.log(err);
+            return res.send("Failed to fetch users");
+        }
+        if (!users || !users.length) return res.send("No users found");
+        sendGenericMessage(users[users.length - 1].chatID);
+        res.send("send message to: " +  users[users.length - 1].chatID);
+    });
+});
+
 /*
  * Send a Structured Message (Generic Message type) using the Send API.
  *
  */
 function sendGenericMessage(recipientId) {
-    var messageData = {
-        recipient: {
-            id: recipientId
-        },
-        message: {
-            attachment: {
-                type: "template",
-                payload: {
-                    template_type: "generic",
-                    elements: [{
-                        title: "rift",
-                        subtitle: "Next-generation virtual reality",
-                        item_url: "https://www.oculus.com/en-us/rift/",               
-                        image_url: SERVER_URL + "/assets/rift.png",
-                        buttons: [{
-                            type: "web_url",
-                            url: "https://www.oculus.com/en-us/rift/",
-                            title: "Open Web URL"
-                        }, {
-                            type: "postback",
-                            title: "Call Postback",
-                            payload: "Payload for first bubble",
-                        }],
-                    }, {
-                        title: "touch",
-                        subtitle: "Your Hands, Now in VR",
-                        item_url: "https://www.oculus.com/en-us/touch/",               
-                        image_url: SERVER_URL + "/assets/touch.png",
-                        buttons: [{
-                            type: "web_url",
-                            url: "https://www.oculus.com/en-us/touch/",
-                            title: "Open Web URL"
-                        }, {
-                            type: "postback",
-                            title: "Call Postback",
-                            payload: "Payload for second bubble",
+    var article = NewsCtrl.getLatest(function(err, article) {
+        var messageData = {
+            recipient: {
+                id: recipientId
+            },
+            message: {
+                attachment: {
+                    type: "template",
+                    payload: {
+                        template_type: "generic",
+                        elements: [{
+                            title: article.title,
+                            subtitle: article.summary,
+                            item_url: article.url,               
+                            image_url: article.image,
+                            buttons: [{
+                                type: "web_url",
+                                url: article.url,
+                                title: "Read on the website"
+                            }, {
+                                type: "postback",
+                                title: "Get summary",
+                                payload: "summary__" + article.id,
+                            }]
                         }]
-                    }]
+                    }
                 }
             }
-        }
-    };  
+        };  
 
-    callSendAPI(messageData);
+        callSendAPI(messageData, () => {});
+    });
 }
 
 /*
@@ -815,35 +843,6 @@ function sendAccountLinking(recipientId) {
     callSendAPI(messageData);
 }
 
-/*
- * Call the Send API. The message data goes in the body. If successful, we'll 
- * get the message id in a response 
- *
- */
-function callSendAPI(messageData) {
-    request({
-        uri: 'https://graph.facebook.com/v2.6/me/messages',
-        qs: { access_token: PAGE_ACCESS_TOKEN },
-        method: 'POST',
-        json: messageData
-
-    }, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            var recipientId = body.recipient_id;
-            var messageId = body.message_id;
-
-            if (messageId) {
-                console.log("Successfully sent message with id %s to recipient %s", 
-                    messageId, recipientId);
-            } else {
-                console.log("Successfully called Send API for recipient %s", 
-                    recipientId);
-            }
-        } else {
-            console.error("Failed calling Send API", response.statusCode, response.statusMessage, body.error);
-        }
-    });  
-}
 
 // Start server
 // Webhooks must be available via SSL with a certificate signed by a valid 

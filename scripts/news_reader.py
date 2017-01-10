@@ -19,4 +19,5 @@ data = {
     'title': article.title
 }
 print(data)
-requests.post('http://localhost:5000/api/news/', data, headers = {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
+res = requests.post('http://localhost:5000/api/news/', data, headers = {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
+print(res);
