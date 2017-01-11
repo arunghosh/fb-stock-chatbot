@@ -95,7 +95,7 @@ app.get('/webhook', function(req, res) {
 
 function createOrUpdateUser(event) {
     console.log("checking user .....")
-    User.find({messageId: event.sender.id}, function(err, users) {
+    User.find({chatID: event.sender.id}, function(err, users) {
         if (err) {
             console.log("Failed to get user")
             console.error(err);

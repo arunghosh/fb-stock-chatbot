@@ -1,4 +1,5 @@
 var News = require('./news.model');
+var notifier = require('../../components/notifier');
 
 module.exports = {
     get: get,
@@ -19,7 +20,11 @@ function getLatest(callback) {
 }
 
 
+/**
+ * Add news and notifi users
+ */
 function add(req, res) {
+    console.log('Adding news...')
     console.log(req.body);
     News.find({url: req.body.url}, function(err, articles) {
         if (err) {
@@ -37,8 +42,9 @@ function add(req, res) {
             image: req.body.image,
         });
 
-        news.save(function(err){
+        news.save(function(err, updatedNews){
             if(err) return res.status(400).send(err);
+            notifier.sendNewsToUsers(updatedNews, () => {});
             return res.send("Successfully added news");
         });
     });

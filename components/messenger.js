@@ -9,7 +9,8 @@ const PAGE_ACCESS_TOKEN = (process.env.MESSENGER_PAGE_ACCESS_TOKEN) ?
     config.get('pageAccessToken');
 
 module.exports = {
-    callSendAPI: callSendAPI
+    callSendAPI: callSendAPI,
+    getNewsMessage: getNewsMessage
 }
 
 /*
@@ -18,6 +19,8 @@ module.exports = {
  *
  */
 function callSendAPI(messageData, callback) {
+    console.log(messageData)
+    callback = callback || (() => {});
     request({
         uri: 'https://graph.facebook.com/v2.6/me/messages',
         qs: { access_token: PAGE_ACCESS_TOKEN },
@@ -34,8 +37,7 @@ function callSendAPI(messageData, callback) {
                 console.log("Successfully sent message with id %s to recipient %s", 
                     messageId, recipientId);
             } else {
-                console.log("Successfully called Send API for recipient %s", 
-                    recipientId);
+                console.log("Successfully called Send API for recipient %s", recipientId);
             }
         } else {
             console.error("Failed calling Send API", response.statusCode, response.statusMessage, body.error);
@@ -44,3 +46,38 @@ function callSendAPI(messageData, callback) {
     });  
 }
 
+
+/**
+ * Get generic template to show a news artcile
+ */
+function getNewsMessage(recipientId, article) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "generic",
+                    elements: [{
+                        title: article.title,
+                        subtitle: article.summary,
+                        item_url: article.url,               
+                        image_url: article.image,
+                        buttons: [{
+                            type: "web_url",
+                            url: article.url,
+                            title: "Read on the website"
+                        }, {
+                            type: "postback",
+                            title: "Get me summary of '" + article.title + "'",
+                            payload: "summary__" + article.id,
+                        }]
+                    }]
+                }
+            }
+        }
+    };  
+    return messageData;
+}
