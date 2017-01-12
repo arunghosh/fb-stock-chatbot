@@ -26,7 +26,7 @@ class GoogleFinanceAPI:
 if __name__ == "__main__":
     c = GoogleFinanceAPI()
 
-    for code, name in COMPANIES[:1]:
+    for code, name in COMPANIES:
         quote = c.get(code ,"NSE")
         data = {
             'code': code,
