@@ -1,5 +1,5 @@
 const
-    config = require('config'),
+config = require('config'),
     request = require('request');
 
 
@@ -10,7 +10,26 @@ const PAGE_ACCESS_TOKEN = (process.env.MESSENGER_PAGE_ACCESS_TOKEN) ?
 
 module.exports = {
     callSendAPI: callSendAPI,
-    getNewsMessage: getNewsMessage
+    getNewsMessage: getNewsMessage,
+    sendTextMessage: sendTextMessage,
+}
+
+/*
+ * Send a text message using the Send API.
+ *
+ */
+function sendTextMessage(recipientId, messageText) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            text: messageText,
+            metadata: "DEVELOPER_DEFINED_METADATA"
+        }
+    };
+
+    callSendAPI(messageData);
 }
 
 /*
@@ -50,7 +69,25 @@ function callSendAPI(messageData, callback) {
 /**
  * Get generic template to show a news artcile
  */
-function getNewsMessage(recipientId, article) {
+function getNewsMessage(recipientId, articles) {
+    var elements = articles.map((article) => {
+        return {
+            title: article.title,
+            subtitle: article.summary,
+            item_url: article.url,               
+            image_url: article.image,
+            buttons: [{
+                type: "web_url",
+                url: article.url,
+                title: "Read on the website"
+            }, {
+                type: "postback",
+                title: "Get me summary of '" + article.title + "'",
+                payload: "summary__" + article.id,
+            }]
+        }
+    })
+
     var messageData = {
         recipient: {
             id: recipientId
@@ -60,21 +97,7 @@ function getNewsMessage(recipientId, article) {
                 type: "template",
                 payload: {
                     template_type: "generic",
-                    elements: [{
-                        title: article.title,
-                        subtitle: article.summary,
-                        item_url: article.url,               
-                        image_url: article.image,
-                        buttons: [{
-                            type: "web_url",
-                            url: article.url,
-                            title: "Read on the website"
-                        }, {
-                            type: "postback",
-                            title: "Get me summary of '" + article.title + "'",
-                            payload: "summary__" + article.id,
-                        }]
-                    }]
+                    elements: elements
                 }
             }
         }
