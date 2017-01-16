@@ -8,6 +8,9 @@ module.exports = {
 function addOrUpdate(req, res) {
     console.log('Adding/updating stock...')
     var currentValue = Number(req.body.value.replace(/,/g, ''))
+    var change = Number(req.body.change.replace(/,/g, ''))
+    var changePercent = Number(req.body.changep)
+    var prevClose = Number(req.body.pclose)
     Stock.findOne({code: req.body.code}, function(err, result) {
         if (err) {
             console.log(err);
@@ -54,6 +57,9 @@ function addOrUpdate(req, res) {
                 code: req.body.code
             }, {
                 current: currentValue,
+                prevClose: prevClose,
+                change: change,
+                changePercent: changePercent,
                 $push: {
                     values: {
                         value: currentValue

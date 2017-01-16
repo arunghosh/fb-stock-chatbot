@@ -33,7 +33,9 @@ function sendStockToUsers(stock, callback) {
     User.find({}, function(err, users) {
         if(err) return callback(err)
         users.forEach(function(user) {
-            messenger.sendTextMessage(user.chatID, stock.company + ' : ' + stock.current);
+            // messenger.sendTextMessage(user.chatID, stock.company + ' : ' + stock.current);
+            messenger.sendTextMessage(user.chatID, 
+    stock.company + ' changed from ' + stock.prevClose + ' to ' + stock.current + ' by ' + stock.change + '(' + stock.changePercent + '%)' );
         });
     });
 
@@ -50,7 +52,7 @@ function sendNewsByTopic(recipientId, topic, callback) {
         }
         console.log(result);
         let data = messenger.getNewsMessage(recipientId, result);
-        messenger.callSendAPI(data, () => {});
+        messenger.callSendAPI(data, callback);
     });
 }
 

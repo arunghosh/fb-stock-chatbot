@@ -278,7 +278,10 @@ function receivedMessage(event) {
     var messageText = message.text;
     var messageAttachments = message.attachments;
     var quickReply = message.quick_reply;
-    notifier.sendNewsByTopic(senderID, message.text)
+    sendTypingOn(senderID);
+    notifier.sendNewsByTopic(senderID, message.text, function() {
+        sendTypingOff(senderID);
+    })
     // if (isEcho) {
     //     // Just logging message echoes to console
     //     console.log("Received echo for message %s and app %d with metadata %s", 
@@ -344,7 +347,9 @@ function receivedPostback(event) {
     // When a postback is called, we'll send a message back to the sender to 
     // let them know it was successful
     var articleID = payload.split("__")[1];
+    sendTypingOn(senderID);
     News.findById(articleID, function(err, article) {
+        sendTypingOff(senderID);
         sendTextMessage(senderID, article.summary.substr(0, 630));
     });
 }

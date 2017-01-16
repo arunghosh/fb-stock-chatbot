@@ -31,7 +31,10 @@ if __name__ == "__main__":
         data = {
             'code': code,
             'name': name,
-            'value': quote['l']
+            'value': quote['l'],
+            'pclose': quote['pcls_fix'],
+            'change': quote['c'],
+            'changep': quote['cp_fix']
         }
         print(quote)
         res = requests.post('http://localhost:5000/api/stock/', data, headers = {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
