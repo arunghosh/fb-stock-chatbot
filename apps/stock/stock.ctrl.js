@@ -3,6 +3,17 @@ var notifier = require('../../components/notifier');
 
 module.exports = {
     addOrUpdate: addOrUpdate,
+    get: get
+}
+
+function get(req, res) {
+  Stock.find({}, (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(400).send(err)
+    }
+    return res.send(result);
+  })
 }
 
 function addOrUpdate(req, res) {

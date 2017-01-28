@@ -27,8 +27,11 @@ bodyParser = require('body-parser'),
 
 mongoose.Promise = require('bluebird');
 var app = express();
+var cors = require('cors');
+
 app.set('port', process.env.PORT || 5000);
 app.set('view engine', 'ejs');
+app.use(cors());
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
 app.use(bodyParser.urlencoded({
     extended: true
