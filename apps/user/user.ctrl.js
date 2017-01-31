@@ -18,5 +18,16 @@ function get(req, res) {
 }
 
 function update(req, res) {
-
+  console.log(req.body)
+  User.findOneAndUpdate(req.params.id, {
+    $set: {
+      stocks: req.body.stocks
+    }
+  }, (err, result) => {
+    if(err) {
+      console.log(err);
+      return res.status(400).send(err);
+    }
+    res.send(result);
+  })
 }
