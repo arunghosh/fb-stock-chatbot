@@ -21,7 +21,7 @@ function sendNewsToUsers(news, callback) {
             console.log("####", user)
             let data = messenger.getNewsMessage(user.chatID, [news]);
             console.log(data)
-            messenger.callSendAPI(data, () => {});
+            messenger.callSendAPI(data, callback);
         });
     });
 }

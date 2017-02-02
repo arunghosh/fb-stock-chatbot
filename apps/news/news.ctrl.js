@@ -44,7 +44,7 @@ function add(req, res) {
 
         news.save(function(err, updatedNews){
             if(err) return res.status(400).send(err);
-            notifier.sendNewsToUsers(updatedNews, () => {});
+            // notifier.sendNewsToUsers(updatedNews, () => {});
             return res.send("Successfully added news");
         });
     });
