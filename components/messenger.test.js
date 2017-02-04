@@ -21,13 +21,16 @@ describe('messenger', function() {
   describe('#getNewsMessage()', function() {
     it('should have field like title, url', function() {
       var news = [{
-        title: "abcd"
+        title: "abcd",
+        url: 'http://abcd.com'
       }, {
-        title: "xyz"
+        title: "xyz",
+        url: 'http://xyz.com'
       }]
       var message = messenger.getNewsMessage(23233, news);
       news.forEach((n, i) => {
         assert.equal(n.title, message.message.attachment.payload.elements[i].title);
+        assert.equal(n.url, message.message.attachment.payload.elements[i].item_url);
       })
     });
   });
