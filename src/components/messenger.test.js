@@ -13,12 +13,8 @@ describe('messenger', function() {
       var message = messenger.getNewsMessage(23233, news);
       assert.equal(news.length, message.message.attachment.payload.elements.length);
     });
-  });
-});
 
 
-describe('messenger', function() {
-  describe('#getNewsMessage()', function() {
     it('should have field like title, url', function() {
       var news = [{
         title: "abcd",

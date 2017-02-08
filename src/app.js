@@ -40,7 +40,7 @@ app.use(express.static('public'));
 require('./routes')(app);
 
 // Connect to MongoDB
-var url = 'mongodb://localhost:27017/stock';
+var url = 'mongodb://mongodb:27017/stock';
 mongoose.connect(url, {});
 mongoose.connection.on('error', function(err) {
     console.error(`MongoDB connection error: ${err}`);
