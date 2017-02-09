@@ -1,0 +1,2 @@
+* * * * * root echo "Hello world" >> /var/log/cron.log 2>&1
+* * * * * root /usr/local/bin/python /app/news_notifier.py >> /var/log/cron.log 2>&1
