@@ -1,12 +1,19 @@
-chatadmin:
-  build: ./src
+main:
+  build: ./main
   ports:
     - "8000:5000"
   volumes:
-    - ./src:/usr/src
+    - ./main:/usr/src
   links:
     - mongodb
 
 mongodb:
   image: mongo
+
+jobs:
+  build: ./jobs
+  volumes:
+    - ./jobs:/app
+  links:
+    - main
 

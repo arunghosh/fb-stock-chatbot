@@ -12,6 +12,6 @@ RUN npm install
 COPY . /usr/src
 
 EXPOSE 5000
-RUN ["apt-get", "update"]
-RUN ["apt-get", "install", "-y", "vim"]
+# RUN ["apt-get", "update"]
+# RUN ["apt-get", "install", "-y", "vim"]
 CMD [ "/usr/local/bin/node", "app.js" ]

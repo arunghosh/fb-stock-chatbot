@@ -1,5 +1,5 @@
 const News = require('../apps/news/news.model');
-const url = 'mongodb://localhost:27017/stock';
+const url = 'mongodb://mongo:27017/stock';
 const mongoose = require('mongoose');
 const notifier = require('../components/notifier')
 console.log(123123)
@@ -10,6 +10,9 @@ mongoose.connection.on('error', function(err) {
 });
 
 
+/**
+ * Notify new news and mark news as read
+ */
 function notify(callback) {
   News.findOne({
     isNotified: false
